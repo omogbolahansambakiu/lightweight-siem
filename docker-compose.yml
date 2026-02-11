@@ -1,0 +1,231 @@
+version: '3.8'
+
+services:
+  # OpenSearch - Log storage and search
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: siem-opensearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - siem-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis - Message queue
+  redis:
+    image: redis:7-alpine
+    container_name: siem-redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./data/redis:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - siem-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Detection Engine - Core processing
+  detection-engine:
+    build:
+      context: .
+      dockerfile: deployment/docker/detection-engine/Dockerfile
+    container_name: siem-detection-engine
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./detection-engine:/app
+      - ./config/siem:/app/config
+      - ./rules:/app/rules
+      - ./data/logs/detection-engine:/var/log/siem
+    networks:
+      - siem-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # Alert Manager - Notification handling
+  alert-manager:
+    build:
+      context: .
+      dockerfile: deployment/docker/alert-manager/Dockerfile
+    container_name: siem-alert-manager
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./alert-manager:/app
+      - ./data/logs/alert-manager:/var/log/siem
+    networks:
+      - siem-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # API Server - REST API
+  api:
+    build:
+      context: .
+      dockerfile: deployment/docker/api/Dockerfile
+    container_name: siem-api
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./api:/app
+      - ./data/logs/api:/var/log/siem
+    ports:
+      - "8000:8000"
+    networks:
+      - siem-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Dashboard
+  frontend:
+    build:
+      context: .
+      dockerfile: deployment/docker/frontend/Dockerfile
+    container_name: siem-frontend
+    depends_on:
+      - api
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - siem-network
+    restart: unless-stopped
+
+  # Filebeat - Log collector
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: siem-filebeat
+    user: root
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/log:/var/log/host:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./data/filebeat:/usr/share/filebeat/data
+    command: filebeat -e -strict.perms=false
+    networks:
+      - siem-network
+    restart: unless-stopped
+
+  # Syslog Receiver
+  syslog-receiver:
+    build:
+      context: ./collectors/syslog-receiver
+      dockerfile: Dockerfile
+    container_name: siem-syslog-receiver
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - "514:5514/udp"
+      - "514:5514/tcp"
+    networks:
+      - siem-network
+    restart: unless-stopped
+
+  # Prometheus - Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: siem-prometheus
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - ./data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - siem-network
+    restart: unless-stopped
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: siem-grafana
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource
+    volumes:
+      - ./dashboards/grafana/provisioning:/etc/grafana/provisioning
+      - ./dashboards/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - siem-network
+    restart: unless-stopped
+
+networks:
+  siem-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  opensearch-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:

@@ -1,0 +1,15 @@
+name: "Cross-Site Scripting (XSS) Attempt"
+id: "web-002"
+description: "Detects XSS attempts in HTTP requests"
+severity: "MEDIUM"
+category: "web"
+enabled: true
+
+detection:
+  selection:
+    event.category: "web"
+    url.query:
+      regex: ".*(<script|javascript:|onerror=|onload=).*"
+
+tags:
+  - "attack.initial_access"

@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # OpenSearch - Minimal config for testing
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: siem-opensearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - siem-network
+
+  # Redis - Message queue
+  redis:
+    image: redis:7-alpine
+    container_name: siem-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - siem-network
+
+networks:
+  siem-network:
+    driver: bridge
+
+volumes:
+  opensearch-data:
+  redis-data:

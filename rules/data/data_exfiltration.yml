@@ -1,0 +1,16 @@
+name: "Large Data Transfer"
+id: "data-001"
+description: "Detects unusually large data transfers"
+severity: "HIGH"
+category: "data"
+enabled: true
+
+detection:
+  selection:
+    event.category: "network"
+    network.bytes:
+      gte: 104857600  # 100MB
+
+tags:
+  - "attack.exfiltration"
+  - "attack.t1041"

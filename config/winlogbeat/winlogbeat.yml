@@ -1,0 +1,86 @@
+# Winlogbeat Configuration for Windows Event Logs
+
+winlogbeat.event_logs:
+  # Security Events
+  - name: Security
+    ignore_older: 72h
+    event_id: 4624, 4625, 4648, 4672, 4720, 4722, 4724, 4732, 4740, 4756, 4776
+    processors:
+      - drop_event.when.not.or:
+        - equals.winlog.event_id: 4624  # Successful logon
+        - equals.winlog.event_id: 4625  # Failed logon
+        - equals.winlog.event_id: 4648  # Logon with explicit credentials
+        - equals.winlog.event_id: 4672  # Special privileges assigned
+        - equals.winlog.event_id: 4720  # User account created
+        - equals.winlog.event_id: 4722  # User account enabled
+        - equals.winlog.event_id: 4724  # Password reset attempt
+        - equals.winlog.event_id: 4732  # Member added to security group
+        - equals.winlog.event_id: 4740  # User account locked out
+        - equals.winlog.event_id: 4756  # Member added to universal group
+        - equals.winlog.event_id: 4776  # Domain controller authentication
+
+  # System Events
+  - name: System
+    ignore_older: 72h
+    level: warning, error, critical
+
+  # Application Events
+  - name: Application
+    ignore_older: 72h
+    level: warning, error, critical
+
+  # PowerShell Events (Suspicious activity)
+  - name: Microsoft-Windows-PowerShell/Operational
+    event_id: 4103, 4104, 4105, 4106
+    ignore_older: 72h
+
+  # Sysmon Events (if installed)
+  - name: Microsoft-Windows-Sysmon/Operational
+    ignore_older: 72h
+
+# Add metadata
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  
+  # Add custom fields
+  - add_fields:
+      target: ''
+      fields:
+        log_type: windows_event
+        source_type: winlogbeat
+  
+  # Rename fields to ECS
+  - rename:
+      fields:
+        - from: "winlog.event_id"
+          to: "event.code"
+        - from: "winlog.provider_name"
+          to: "event.provider"
+      ignore_missing: true
+
+# Output to Redis
+output.redis:
+  hosts: ["${REDIS_HOST:redis}:${REDIS_PORT:6379}"]
+  key: "events:raw"
+  db: 0
+  timeout: 5
+  datatype: list
+  codec.json:
+    pretty: false
+
+# Logging
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:/ProgramData/winlogbeat/Logs
+  name: winlogbeat
+  keepfiles: 7
+  permissions: 0644
+
+# Performance
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s

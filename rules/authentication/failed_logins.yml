@@ -1,0 +1,20 @@
+name: "Multiple Failed Login Attempts"
+id: "auth-002"
+description: "Detects pattern of failed authentication attempts"
+severity: "MEDIUM"
+category: "authentication"
+enabled: true
+
+detection:
+  selection:
+    event.category: "authentication"
+    event.outcome: "failure"
+  
+  condition: "count > 10"
+  timeframe: "10m"
+  groupby:
+    - "source.ip"
+    - "user.name"
+
+actions:
+  - type: "alert"

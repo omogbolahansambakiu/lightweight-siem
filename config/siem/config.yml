@@ -1,0 +1,215 @@
+# Main SIEM Configuration
+
+# Application
+app:
+  name: "Lightweight SIEM"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+
+# OpenSearch Configuration
+opensearch:
+  host: "${OPENSEARCH_HOST:opensearch}"
+  port: ${OPENSEARCH_PORT:9200}
+  scheme: "${OPENSEARCH_SCHEME:http}"
+  username: "${OPENSEARCH_USER:admin}"
+  password: "${OPENSEARCH_PASSWORD:admin}"
+  use_ssl: ${OPENSEARCH_USE_SSL:false}
+  verify_certs: ${OPENSEARCH_VERIFY_CERTS:false}
+  timeout: 30
+  max_retries: 3
+  retry_on_timeout: true
+  
+  # Index settings
+  indices:
+    events: "siem-events"
+    alerts: "siem-alerts"
+    rules: "siem-rules"
+    pattern: "siem-events-*"
+  
+  # Index lifecycle
+  lifecycle:
+    rollover_days: 1
+    rollover_size: "50gb"
+    retention_days_events: 90
+    retention_days_alerts: 365
+
+# Redis Configuration
+redis:
+  host: "${REDIS_HOST:redis}"
+  port: ${REDIS_PORT:6379}
+  db: ${REDIS_DB:0}
+  password: "${REDIS_PASSWORD:}"
+  socket_timeout: 5
+  socket_connect_timeout: 5
+  max_connections: 50
+  
+  # Queue configuration
+  queues:
+    raw_events: "events:raw"
+    parsed_events: "events:parsed"
+    alerts: "alerts:queue"
+    dead_letter: "events:dlq"
+
+# Detection Engine Configuration
+detection:
+  enabled: true
+  workers: ${DETECTION_WORKERS:2}
+  batch_size: ${DETECTION_BATCH_SIZE:100}
+  poll_interval: ${DETECTION_POLL_INTERVAL:1}
+  
+  # Rules
+  rules:
+    directory: "/app/rules"
+    reload_interval: ${RULE_RELOAD_INTERVAL:60}
+    enabled_categories:
+      - authentication
+      - network
+      - web
+      - system
+      - data
+      - compliance
+  
+  # Features
+  features:
+    correlation: ${ENABLE_CORRELATION:true}
+    threat_intel: ${ENABLE_THREAT_INTEL:true}
+    geoip: ${ENABLE_GEOIP:true}
+    dns_enrichment: true
+    baseline_detection: false
+
+# Enrichment Configuration
+enrichment:
+  # GeoIP
+  geoip:
+    enabled: ${GEOIP_ENABLED:true}
+    database_path: "${GEOIP_DB_PATH:/app/config/geoip/GeoLite2-City.mmdb}"
+    cache_size: 1000
+  
+  # DNS
+  dns:
+    enabled: true
+    timeout: 2
+    cache_size: 5000
+    cache_ttl: 3600
+  
+  # Threat Intelligence
+  threat_intel:
+    enabled: ${THREAT_INTEL_ENABLED:true}
+    feeds_path: "${THREAT_INTEL_FEEDS_PATH:/app/config/threat-intel/indicators.json}"
+    refresh_interval: ${THREAT_INTEL_REFRESH_INTERVAL:3600}
+    types:
+      - ip
+      - domain
+      - hash
+      - url
+
+# Alert Manager Configuration
+alerting:
+  enabled: true
+  workers: ${ALERT_WORKERS:2}
+  
+  # Deduplication
+  deduplication:
+    enabled: true
+    window_seconds: ${ALERT_DEDUP_WINDOW:300}
+    key_fields:
+      - rule_id
+      - source.ip
+      - destination.ip
+  
+  # Throttling
+  throttling:
+    enabled: true
+    window_seconds: ${ALERT_THROTTLE_WINDOW:3600}
+    max_alerts_per_window: ${ALERT_MAX_PER_HOUR:100}
+  
+  # Notification channels
+  notifications:
+    email:
+      enabled: ${SMTP_ENABLED:false}
+      smtp_server: "${SMTP_SERVER:}"
+      smtp_port: ${SMTP_PORT:587}
+      use_tls: ${SMTP_USE_TLS:true}
+      username: "${SMTP_USER:}"
+      password: "${SMTP_PASSWORD:}"
+      from_address: "${SMTP_FROM:siem@example.com}"
+      
+      # Severity routing
+      recipients:
+        CRITICAL: "${SMTP_TO_CRITICAL:security@example.com}"
+        HIGH: "${SMTP_TO_HIGH:security@example.com}"
+        MEDIUM: "${SMTP_TO_MEDIUM:security@example.com}"
+        LOW: "${SMTP_TO_LOW:security@example.com}"
+    
+    slack:
+      enabled: ${SLACK_ENABLED:false}
+      webhook_url: "${SLACK_WEBHOOK_URL:}"
+      
+      # Severity routing
+      channels:
+        CRITICAL: "${SLACK_CHANNEL_CRITICAL:#security-critical}"
+        HIGH: "${SLACK_CHANNEL_HIGH:#security-alerts}"
+        MEDIUM: "${SLACK_CHANNEL_MEDIUM:#security-alerts}"
+        LOW: "${SLACK_CHANNEL_LOW:#security-digest}"
+    
+    pagerduty:
+      enabled: ${PAGERDUTY_ENABLED:false}
+      api_key: "${PAGERDUTY_API_KEY:}"
+      service_key: "${PAGERDUTY_SERVICE_KEY:}"
+      severity_threshold: "${PAGERDUTY_SEVERITY_THRESHOLD:HIGH}"
+    
+    webhook:
+      enabled: ${WEBHOOK_ENABLED:false}
+      url: "${WEBHOOK_URL:}"
+      auth_token: "${WEBHOOK_AUTH_TOKEN:}"
+      timeout: 10
+
+# API Configuration
+api:
+  host: "${API_HOST:0.0.0.0}"
+  port: ${API_PORT:8000}
+  workers: ${API_WORKERS:4}
+  
+  # Security
+  secret_key: "${API_SECRET_KEY:change-this-secret-key}"
+  enable_auth: ${API_ENABLE_AUTH:true}
+  session_timeout: ${SESSION_TIMEOUT:3600}
+  jwt_expiration: ${JWT_EXPIRATION:86400}
+  
+  # CORS
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+  
+  # Rate limiting
+  rate_limit: "${API_RATE_LIMIT:100/minute}"
+
+# Logging Configuration
+logging:
+  level: "${LOG_LEVEL:INFO}"
+  format: "${LOG_FORMAT:json}"
+  handlers:
+    - type: "console"
+      level: "INFO"
+    - type: "file"
+      level: "INFO"
+      filename: "${LOG_FILE:/var/log/siem/app.log}"
+      max_bytes: 10485760  # 10MB
+      backup_count: 5
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: ${PROMETHEUS_ENABLED:true}
+    port: ${PROMETHEUS_PORT:9090}
+  
+  metrics:
+    enabled: ${METRICS_ENABLED:true}
+    collection_interval: 60
+
+# Security
+security:
+  enable_tls: ${ENABLE_TLS:false}
+  tls_cert_path: "${TLS_CERT_PATH:}"
+  tls_key_path: "${TLS_KEY_PATH:}"

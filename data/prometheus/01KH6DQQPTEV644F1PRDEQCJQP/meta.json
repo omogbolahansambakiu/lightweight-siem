@@ -1,0 +1,18 @@
+{
+	"ulid": "01KH6DQQPTEV644F1PRDEQCJQP",
+	"minTime": 1770753603712,
+	"maxTime": 1770760800000,
+	"stats": {
+		"numSamples": 6207,
+		"numFloatSamples": 6207,
+		"numSeries": 96,
+		"numChunks": 96
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KH6DQQPTEV644F1PRDEQCJQP"
+		]
+	},
+	"version": 1
+}

@@ -1,0 +1,8 @@
+{
+  "indicators": [
+    {"type": "ip", "value": "185.234.218.45", "threat": "known_attacker", "severity": "high"},
+    {"type": "ip", "value": "45.33.32.156", "threat": "port_scanner", "severity": "medium"},
+    {"type": "ip", "value": "91.121.87.45", "threat": "brute_force", "severity": "high"},
+    {"type": "ip", "value": "198.20.69.74", "threat": "malware_c2", "severity": "critical"}
+  ]
+}

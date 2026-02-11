@@ -1,0 +1,21 @@
+name: "Admin Panel Access Attempt"
+id: "web-003"
+description: "Detects access attempts to admin panels"
+severity: "MEDIUM"
+category: "web"
+enabled: true
+
+detection:
+  selection:
+    event.category: "web"
+    url.path:
+      - "/admin"
+      - "/administrator"
+      - "/wp-admin"
+      - "/phpmyadmin"
+    http.response.status_code: 401
+
+  condition: "count > 5"
+  timeframe: "5m"
+  groupby:
+    - "source.ip"

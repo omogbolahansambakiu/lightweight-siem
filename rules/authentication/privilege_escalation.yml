@@ -1,0 +1,22 @@
+name: "Privilege Escalation Attempt"
+id: "auth-003"
+description: "Detects sudo or privilege escalation attempts"
+severity: "HIGH"
+category: "authentication"
+enabled: true
+
+detection:
+  selection:
+    process.name:
+      - "sudo"
+      - "su"
+    event.outcome: "failure"
+  
+  condition: "count > 3"
+  timeframe: "5m"
+  groupby:
+    - "user.name"
+
+tags:
+  - "attack.privilege_escalation"
+  - "attack.t1548"

@@ -1,0 +1,24 @@
+name: "Port Scan Detection"
+id: "net-001"
+description: "Detects port scanning activity"
+severity: "MEDIUM"
+category: "network"
+enabled: true
+
+type: "threshold"
+
+detection:
+  selection:
+    event.category: "network"
+    network.protocol: "tcp"
+  
+  condition: "unique_ports > 50"
+  timeframe: "1m"
+  groupby:
+    - "source.ip"
+  unique_count:
+    - "destination.port"
+
+tags:
+  - "attack.discovery"
+  - "attack.t1046"

@@ -1,0 +1,19 @@
+name: "Suspicious Process Execution"
+id: "sys-001"
+description: "Detects execution of suspicious processes"
+severity: "HIGH"
+category: "system"
+enabled: true
+
+detection:
+  selection:
+    process.name:
+      - "nc"
+      - "ncat"
+      - "netcat"
+      - "nmap"
+      - "masscan"
+      - "/tmp/*"
+
+tags:
+  - "attack.execution"

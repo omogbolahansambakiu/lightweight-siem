@@ -1,0 +1,16 @@
+name: "SQL Injection Attempt"
+id: "web-001"
+description: "Detects SQL injection attempts in web requests"
+severity: "HIGH"
+category: "web"
+enabled: true
+
+detection:
+  selection:
+    event.category: "web"
+    url.query:
+      regex: ".*(union|select|insert|update|delete|drop|exec|script).*"
+
+tags:
+  - "attack.initial_access"
+  - "attack.t1190"

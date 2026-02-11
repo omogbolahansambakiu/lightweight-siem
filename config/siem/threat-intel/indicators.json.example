@@ -1,0 +1,12 @@
+{
+  "ips": [
+    "1.2.3.4",
+    "5.6.7.8"
+  ],
+  "domains": [
+    "malicious.example.com"
+  ],
+  "hashes": [
+    "5d41402abc4b2a76b9719d911017c592"
+  ]
+}

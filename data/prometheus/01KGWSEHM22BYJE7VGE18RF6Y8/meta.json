@@ -1,0 +1,18 @@
+{
+	"ulid": "01KGWSEHM22BYJE7VGE18RF6Y8",
+	"minTime": 1770432964923,
+	"maxTime": 1770436800000,
+	"stats": {
+		"numSamples": 580,
+		"numFloatSamples": 580,
+		"numSeries": 10,
+		"numChunks": 10
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KGWSEHM22BYJE7VGE18RF6Y8"
+		]
+	},
+	"version": 1
+}

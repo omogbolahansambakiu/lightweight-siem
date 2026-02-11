@@ -1,0 +1,19 @@
+name: "DDoS Attack Indicators"
+id: "net-002"
+description: "Detects potential DDoS attack patterns"
+severity: "CRITICAL"
+category: "network"
+enabled: true
+
+detection:
+  selection:
+    event.category: "network"
+  
+  condition: "count > 1000"
+  timeframe: "1m"
+  groupby:
+    - "destination.ip"
+
+tags:
+  - "attack.impact"
+  - "attack.t1498"

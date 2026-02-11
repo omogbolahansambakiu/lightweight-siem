@@ -1,0 +1,106 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+.cache/
+
+# Data directories
+data/opensearch/*
+!data/opensearch/.gitkeep
+data/redis/*
+!data/redis/.gitkeep
+data/logs/**/*
+!data/logs/**/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Security
+security/certs/*
+!security/certs/.gitkeep
+!security/certs/README.md
+!security/certs/generate_certs.sh
+security/secrets/*
+!security/secrets/.gitkeep
+!security/secrets/README.md
+*.pem
+*.key
+*.crt
+*.csr
+
+# GeoIP databases
+config/siem/geoip/*.mmdb
+!config/siem/geoip/.gitkeep
+
+# Threat intel data
+config/siem/threat-intel/*.json
+config/siem/threat-intel/*.csv
+!config/siem/threat-intel/.gitkeep
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Docker
+.dockerignore
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Backups
+*.bak
+*.backup
+*.old

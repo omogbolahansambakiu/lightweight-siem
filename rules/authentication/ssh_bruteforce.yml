@@ -1,0 +1,27 @@
+name: "SSH Brute Force Attack"
+id: "auth-001"
+description: "Detects multiple failed SSH login attempts from same source"
+severity: "HIGH"
+category: "authentication"
+enabled: true
+
+detection:
+  selection:
+    event.category: "authentication"
+    event.outcome: "failure"
+    destination.port: 22
+  
+  condition: "count > 5"
+  timeframe: "5m"
+  groupby:
+    - "source.ip"
+
+actions:
+  - type: "alert"
+    notification:
+      - "slack"
+      - "email"
+
+tags:
+  - "attack.credential_access"
+  - "attack.t1110"

@@ -1,0 +1,17 @@
+cluster.name: siem-cluster
+node.name: siem-node-1
+
+# Network
+network.host: 0.0.0.0
+
+# Discovery
+discovery.type: single-node
+
+# Performance
+indices.query.bool.max_clause_count: 4096
+thread_pool.write.queue_size: 1000
+thread_pool.search.queue_size: 1000
+
+# Index Management
+action.auto_create_index: true
+action.destructive_requires_name: true

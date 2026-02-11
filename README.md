@@ -59,7 +59,7 @@ Log Sources → Collectors → Redis Queue → Parser Engine → OpenSearch
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/lightweight-siem.git
+git clone https://github.com/omogbolahansambakiu/lightweight-siem.git
 cd lightweight-siem
 ```
 
@@ -79,7 +79,7 @@ make up
 http://localhost:3000
 ```
 
-Default credentials: `admin / changeme`
+Default credentials: `admin / admin/changme`
 
 ### Initial Setup
 
@@ -367,7 +367,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **⚠️ Important**: This SIEM is designed for security monitoring. Ensure compliance with your organization's security policies and relevant regulations (GDPR, HIPAA, etc.) when deploying.
-# lightweight-siem
-# lightweight-siem
-# lightweight-siem
-# lightweight-siem
+

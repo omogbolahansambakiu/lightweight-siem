@@ -14,7 +14,7 @@ client = OpenSearch(
 async def resolve_alert(alert_id: str):
     """Mark an alert as resolved."""
     try:
-        # Update the alert document in OpenSearch
+       
         client.update(
             index="siem-alerts",
             id=alert_id,
@@ -30,5 +30,5 @@ async def resolve_alert(alert_id: str):
 
     except Exception as e:
         print(f"Error resolving alert {alert_id}: {e}")
-        # Still return success - frontend already removed it from UI
+    
         return {"success": True, "alert_id": alert_id, "status": "resolved"}

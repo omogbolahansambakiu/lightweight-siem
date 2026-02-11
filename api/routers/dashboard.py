@@ -74,8 +74,7 @@ async def get_dashboard_stats(range: str = "24h"):
                 }
             })
 
-        # ── by_severity: [{ severity, count }] ────────────────────────────
-        # Matches App.jsx: stats.by_severity used in PieChart
+       
         severity_counts = defaultdict(int)
         for alert in alerts:
             severity_counts[alert["severity"]] += 1
@@ -85,8 +84,7 @@ async def get_dashboard_stats(range: str = "24h"):
             for severity, count in severity_counts.items()
         ]
 
-        # ── top_ips: [{ ip, count }] ───────────────────────────────────────
-        # Matches App.jsx: stats.top_ips used in BarChart with dataKey="ip"
+       
         ip_counts = defaultdict(int)
         for alert in alerts:
             ip = alert["evidence"]["source_ip"]
@@ -100,8 +98,7 @@ async def get_dashboard_stats(range: str = "24h"):
             )[:5]
         ]
 
-        # ── auth_events: [{ hour, failed, success }] ──────────────────────
-        # Matches App.jsx: stats.auth_events used in stacked BarChart
+        
         auth_by_hour = defaultdict(lambda: {"failed": 0, "success": 0})
         for hit in hits:
             message = hit["_source"].get("message", "")
@@ -118,9 +115,7 @@ async def get_dashboard_stats(range: str = "24h"):
             for hour, v in sorted(auth_by_hour.items())
         ]
 
-        # ── timeline: [{ time, critical, high, medium }] ──────────────────
-        # Matches App.jsx: stats.timeline used in LineChart
-        # Uses 4h buckets to match the mock data format
+        
         timeline_data = defaultdict(lambda: {"critical": 0, "high": 0, "medium": 0})
         for alert in alerts:
             timestamp = alert["timestamp"] or ""
@@ -138,8 +133,6 @@ async def get_dashboard_stats(range: str = "24h"):
             for time, v in sorted(timeline_data.items())
         ]
 
-        # ── Scalar metrics ─────────────────────────────────────────────────
-        # Matches App.jsx: MetricCard values
         failed_logins = sum(
             1 for hit in hits
             if "Failed password" in hit["_source"].get("message", "")
@@ -159,12 +152,12 @@ async def get_dashboard_stats(range: str = "24h"):
                 "top_ips": top_ips,
                 "auth_events": auth_events
             },
-            "alerts": alerts[:10]  # App.jsx shows 10 rows in AlertsTable
+            "alerts": alerts[:10]  
         }
 
     except Exception as e:
         print(f"OpenSearch error: {e}")
-        # Return empty structure matching App.jsx defaults
+        
         return {
             "stats": {
                 "total_alerts": 0,

@@ -369,3 +369,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **⚠️ Important**: This SIEM is designed for security monitoring. Ensure compliance with your organization's security policies and relevant regulations (GDPR, HIPAA, etc.) when deploying.
 # lightweight-siem
 # lightweight-siem
+# lightweight-siem
